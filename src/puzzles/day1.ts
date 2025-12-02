@@ -1,7 +1,7 @@
-import {Dial} from "../dial.js";
+import { Dial } from "../dial.js";
 
-export async function solve(input: string[], dial: Dial): Promise<number> {
-
+export async function solve(input: string[]): Promise<number> {
+    let dial = new Dial();
     let result = 0;
 
     input.map(rotation => {

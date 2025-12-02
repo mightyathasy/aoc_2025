@@ -1,5 +1,3 @@
-import {Dial} from "./dial.js";
-
 export async function onRunClick(): Promise<void> {
     const input = document.getElementById('inputFile');
     const file = await (input as HTMLInputElement).files?.[0]?.text();
@@ -11,7 +9,7 @@ export async function onRunClick(): Promise<void> {
     const selectedPuzzle = (document.getElementById('puzzles') as HTMLSelectElement).value;
 
     const puzzleModule = await import('./puzzles/' + selectedPuzzle + '.js');
-    output.textContent = await puzzleModule.solve(file.split("\r\n"), new Dial());
+    output.textContent = await puzzleModule.solve(file.split("\r\n"));
 }
 
 document.addEventListener('DOMContentLoaded', () => {
