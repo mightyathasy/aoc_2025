@@ -4,41 +4,42 @@ export class Dial {
     constructor() {}
 
     rotate(direction: string, clicks: number): void {
-        if (direction === 'L') {
-            this.position -= clicks;
-        } else if (direction === 'R') {
-            this.position += clicks;
-        }
-        this.position = (this.position + 100) % 100; // maybe an enum would be better later on :D based on experience with this shitty puzzles
+        this.position = this.positionAfterRotation(direction, clicks);
     }
 
-    doesRotationMoveOverZero(direction: string, clicks: number): boolean {
+    positionAfterRotation(direction: string, clicks: number): number {
+        clicks = clicks % 100; // Normalize clicks to within one full rotation
+        switch(direction) {
+            case 'L':
+                return (this.position - clicks + 100) % 100;
+            case 'R':
+                return (this.position + clicks) % 100;
+            default:
+                throw new Error("Invalid direction: " + direction);
+        }
+    }
+
+    doesRotationMoveOverOrEndOnZero(direction: string, clicks: number): boolean {
+        if(clicks >= 100  || clicks <= 0) {
+            throw new Error("Clicks must be between 1 and 99 for this check.");
+        }
         if(this.position === 0) {
+            // Already on zero and since cannot do full rotation here, will not touch zero again
             return false;
         }
         if(direction === 'L') {
-            return this.position - clicks < 0;
+            return (this.position - clicks) <= 0;
         }
         else if(direction === 'R') {
-            return this.position + clicks >= 100;
-        }
-        return false;
-    }
-
-    doesRotationEndOnZero(direction: string, clicks: number): boolean {
-        if(direction === 'L') {
-            return (this.position - clicks + 100) % 100 === 0;
-        }
-        else if(direction === 'R') {
-            return (this.position + clicks) % 100 === 0;
+            return (this.position + clicks) >= 100;
         }
         return false;
     }
 
     countOfTouchingZero(direction: string, clicks: number): number {
-        let result = Math.floor(clicks / 100); // each full rotation touches zero once
-        let leftOverClicks = clicks % 100;
-        return result + (this.doesRotationMoveOverZero(direction, leftOverClicks) || this.doesRotationEndOnZero(direction, leftOverClicks) ? 1 : 0);
+        let fullRotationTouches = Math.floor(clicks / 100); // each full rotation touches zero once
+        let leftOverClicks = clicks - (fullRotationTouches * 100);
+        return fullRotationTouches + (this.doesRotationMoveOverOrEndOnZero(direction, leftOverClicks) ? 1 : 0)
     }
 
     getPosition(): number {
