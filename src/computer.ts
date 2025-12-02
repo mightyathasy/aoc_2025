@@ -22,7 +22,14 @@ export class Computer {
 
     isIDInvalid(id: number): boolean {
         let idAsString = id.toString();
-        return idAsString.slice(0, (idAsString.length / 2)) === idAsString.slice((idAsString.length / 2), idAsString.length);
+        let invalid = false;
+        for(let cnt = 1; cnt <= Math.floor(idAsString.length / 2); cnt++) {
+            invalid = idAsString.replaceAll(idAsString.slice(0, cnt), '').length === 0;
+            if(invalid) {
+                break;
+            }
+        }
+        return invalid;
     }
 
     getInvalidIDsInRange(range: IDRange): number[] {
