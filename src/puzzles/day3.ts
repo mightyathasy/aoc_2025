@@ -6,9 +6,8 @@ export async function solve(input: string[]): Promise<number> {
     input.forEach((batteries) => {
         let bank = new Bank();
         bank.setBatteries(batteries);
-        console.log(`Batteries: ${batteries}`);
-        addedJoltage += bank.getJoltagePart1();
-        // addedJoltage += bank.getJoltagePart2();
+        addedJoltage += bank.getJoltage();
+        console.log(`Batteries: ${batteries}, Joltage: ${bank.getJoltage()}`);
     });
 
     return addedJoltage;

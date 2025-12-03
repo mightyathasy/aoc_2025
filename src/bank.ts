@@ -1,5 +1,6 @@
 export class Bank {
     private  batteries: number[] = [];
+    private turnedOnBatteryLimit: number = 12;
     constructor() {}
 
     setBatteries(batteries: string): void {
@@ -14,31 +15,31 @@ export class Bank {
         return this.batteries.slice(index+1).findIndex(b => b === capacity);
     }
 
-    getJoltagePart1(): number {
-        let joltage = 0;
-        // Iterating from 99 to 11
+    getJoltage(bankSegment?: number[], joltage?: number): number {
+        bankSegment = bankSegment || this.batteries;
+
         for(let capacityFirstLetter = 9; capacityFirstLetter >= 1; capacityFirstLetter--) {
-            let firstIndex = this.batteries.findIndex(b => b === capacityFirstLetter);
-            if(firstIndex > -1) {
-                for(let capacitySecondLetter = 9; capacitySecondLetter >= 1; capacitySecondLetter--) {
-                    let secondIndex = firstIndex + 1 + this.getIndexOfBatteryAfterIndex(capacitySecondLetter, firstIndex);
-                    if(firstIndex >= 0 && secondIndex >= 0 && firstIndex < secondIndex) {
-                        joltage = capacityFirstLetter * 10 + capacitySecondLetter;
-                        console.log(`Found batteries with capacities ${capacityFirstLetter} and ${capacitySecondLetter} at indices ${firstIndex} and ${secondIndex}, resulting in joltage ${joltage}`);
-                        return joltage;
-                    }
+
+            let foundHighestCapacityIndex = bankSegment.findIndex(b => b === capacityFirstLetter);
+
+            if(foundHighestCapacityIndex > -1) {
+                let currentJoltage = (joltage?.toString() || "") + capacityFirstLetter.toString();
+
+                // If we meet the battery count limit, then return with the jolly-joltage..
+                if(currentJoltage.length === this.turnedOnBatteryLimit) {
+                    return Number(currentJoltage);
+                }
+
+                // RECURSION HAHAHAHAHHAHAHAHAHA
+                let nextBatteriesJoltage = this.getJoltage(bankSegment.slice(foundHighestCapacityIndex + 1), Number(currentJoltage));
+
+                if(nextBatteriesJoltage > -1) {
+                    return nextBatteriesJoltage;
                 }
             }
+
         }
-        return joltage;
-    }
-
-    getJoltagePart2(): number {
-        let joltage = 0;
-
-
-
-        return joltage;
+        return -1;
     }
 
 }
