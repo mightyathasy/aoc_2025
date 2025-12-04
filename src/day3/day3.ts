@@ -1,4 +1,4 @@
-import { Bank } from "../bank.js";
+import { Bank } from "./bank.js";
 
 export async function solve(input: string[]): Promise<number> {
     let addedJoltage = 0;

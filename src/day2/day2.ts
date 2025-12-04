@@ -1,4 +1,4 @@
-import { Computer } from "../computer.js";
+import { Computer } from "./computer.js";
 
 export async function solve(input: string[]): Promise<number> {
     let computer = new Computer();

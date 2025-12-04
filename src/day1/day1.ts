@@ -1,4 +1,4 @@
-import { Dial } from "../dial.js";
+import { Dial } from "./dial.js";
 
 export async function solve(input: string[]): Promise<number> {
     let dial = new Dial();
