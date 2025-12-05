@@ -1,0 +1,1 @@
+export type IDRange = { min: number; max: number };

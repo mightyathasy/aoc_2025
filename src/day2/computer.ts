@@ -1,4 +1,4 @@
-type IDRange = { min: number; max: number };
+import { IDRange } from "../util.js";
 
 export class Computer {
     private idRanges: IDRange[] | undefined;
