@@ -25,6 +25,9 @@ export class HomeworkSolver {
                 } else {
                     currentLine.push(line.slice(this.separatorSpaces[i-1], separatorIndex));
                 }
+                if(i === this.separatorSpaces.length -1) {
+                    currentLine.push(line.slice(separatorIndex));
+                }
             })
             if(isNaN(parseInt(currentLine[0]))) {
                 this.operators = currentLine.map(s => s.trim());
@@ -50,17 +53,22 @@ export class HomeworkSolver {
         }
     }
 
+    useOperatorOnColumn(column: string[], operator: string): number {
+        let columnResult = parseInt(column[0]);
+        column.forEach((n, j) => {
+            if(j === 0) return;
+            columnResult = this.useOperator(columnResult, parseInt(n), operator);
+        })
+        return columnResult;
+    }
+
     solvePart1(): number {
         let result = 0;
 
         for (let i = 0; i < this.getLineLength(); i++) {
             let column = this.data.map(line => line[i]);
-            let columnResult = parseInt(column[0]);
-            column.forEach((n, j) => {
-                if(j === 0) return;
-                columnResult = this.useOperator(columnResult, parseInt(n), this.operators[i]);
-            })
-            result += columnResult;
+            console.log(`Processing column ${i}: ${this.useOperatorOnColumn(column, this.operators[i])}`);
+            result += this.useOperatorOnColumn(column, this.operators[i]);
         }
 
         return result;
