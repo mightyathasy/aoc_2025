@@ -1,4 +1,4 @@
-export async function onRunClick(): Promise<void> {
+async function onRunClick(): Promise<void> {
     const testModeCheckboxChecked = (document.getElementById('testMode') as HTMLInputElement).checked;
     const selectedPuzzle = (document.getElementById('puzzles') as HTMLSelectElement).value;
 
