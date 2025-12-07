@@ -23,10 +23,10 @@ export class HomeworkSolver {
                 if(i === 0) {
                     currentLine.push(line.slice(0, separatorIndex));
                 } else {
-                    currentLine.push(line.slice(this.separatorSpaces[i-1], separatorIndex));
+                    currentLine.push(line.slice(this.separatorSpaces[i-1] + 1, separatorIndex));
                 }
                 if(i === this.separatorSpaces.length -1) {
-                    currentLine.push(line.slice(separatorIndex));
+                    currentLine.push(line.slice(separatorIndex + 1));
                 }
             })
             if(isNaN(parseInt(currentLine[0]))) {
@@ -43,6 +43,9 @@ export class HomeworkSolver {
     }
 
     useOperator(valueA: number, valueB: number, operator: string): number {
+        if(isNaN(valueA) || isNaN(valueB)) {
+            throw new Error(`Invalid values: ${valueA}, ${valueB}`);
+        }
         switch(operator) {
             case '+':
                 return valueA + valueB;
@@ -54,30 +57,31 @@ export class HomeworkSolver {
     }
 
     useOperatorOnColumn(column: string[], operator: string): number {
-        let columnResult = parseInt(column[0]);
-        column.forEach((n, j) => {
-            if(j === 0) return;
-            columnResult = this.useOperator(columnResult, parseInt(n), operator);
-        })
-        return columnResult;
-    }
+        // Part 1
+        // let columnResult = parseInt(column[0]);
+        // column.forEach((n, j) => {
+        //     if(j === 0) return;
+        //     columnResult = this.useOperator(columnResult, parseInt(n), operator);
+        // })
+        // return columnResult;
 
-    solvePart1(): number {
-        let result = 0;
-
-        for (let i = 0; i < this.getLineLength(); i++) {
-            let column = this.data.map(line => line[i]);
-            console.log(`Processing column ${i}: ${this.useOperatorOnColumn(column, this.operators[i])}`);
-            result += this.useOperatorOnColumn(column, this.operators[i]);
+        // Part 2
+        let result = parseInt(column.map(s => s[column[0].length - 1]).join('').trim());
+        for(let i = column[0].length - 2; i > -1; i--) {
+            let currentNumber = column.map(s => s[i]).join('').trim();
+            if(currentNumber === '') continue;
+            result = this.useOperator(result, parseInt(currentNumber), operator);
         }
-
         return result;
     }
 
-    solvePart2(): number {
+    solve(): number {
         let result = 0;
 
-        // TODO
+        for (let i = this.getLineLength() - 1; i > -1; i--) {
+            let column = this.data.map(line => line[i]);
+            result += this.useOperatorOnColumn(column, this.operators[i]);
+        }
 
         return result;
     }
