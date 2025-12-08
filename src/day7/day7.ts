@@ -6,6 +6,9 @@ export async function solve(input: string[]): Promise<number> {
     tachyonManifold.setData(input);
     tachyonManifold.sendBeamIn();
 
-    return tachyonManifold.getSplitCount();
+    // Part 1
+    // return tachyonManifold.getSplitCount();
 
+    // Part 2
+    return tachyonManifold.getAlternativePathCount();
 }
