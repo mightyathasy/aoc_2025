@@ -5,7 +5,7 @@ export class Playground {
     private circuits: Map<number, Set<number>> = new Map(); // connection IDs per circuit ID
     private latestConnectionID: number = 0;
     private latestCircuitID: number = 0;
-    private skippedConnections: JunctionBox[][] = [];
+    private connectionsHandled: JunctionBox[][] = [];
     private connectionLimiter: number = 0;
 
     constructor() { }
@@ -23,12 +23,13 @@ export class Playground {
     }
 
     createCircuits(): void {
-        while(this.connectionLimiter < 10) {
+        while(this.connectionLimiter < 1000) {
             let closestBoxes = this.getClosestBoxes();
             if(!this.areBoxesConnectedOrInSameCircuit(closestBoxes[0],closestBoxes[1])) {
                 this.connectBoxes(closestBoxes[0], closestBoxes[1]);
+                this.connectionsHandled.push(closestBoxes);
             } else {
-                this.skippedConnections.push(closestBoxes);
+                this.connectionsHandled.push(closestBoxes);
             }
             this.connectionLimiter++;
         }
@@ -61,7 +62,7 @@ export class Playground {
         for (let i = 0; i < this.junctionBoxes.length; i++) {
             for (let j = i + 1; j < this.junctionBoxes.length; j++) {
                 const distance = this.calculateDistance(this.junctionBoxes[i], this.junctionBoxes[j]);
-                if (distance < minDistance && !this.isConnectionSkipped(this.junctionBoxes[i], this.junctionBoxes[j])) {
+                if (distance < minDistance && !this.isConnectionHandled(this.junctionBoxes[i], this.junctionBoxes[j])) {
                     minDistance = distance;
                     closestBoxes = [this.junctionBoxes[i], this.junctionBoxes[j]];
                 }
@@ -109,11 +110,10 @@ export class Playground {
         return directlyConnected || inTheSameCircuitButNotConnected;
     }
 
-    private isConnectionSkipped(a: JunctionBox, b: JunctionBox): boolean {
-        return this.skippedConnections.some(connection => {
-            return connection.some(box => {
-                return (box.x === a.x && box.y === a.y && box.z === a.z) || (box.x === b.x && box.y === b.y && box.z === b.z);
-            })
+    private isConnectionHandled(a: JunctionBox, b: JunctionBox): boolean {
+        return this.connectionsHandled.some(connection => {
+            return  (connection[0].x === a.x && connection[0].y === a.y && connection[0].z === a.z) && (connection[1].x === b.x && connection[1].y === b.y && connection[1].z === b.z) ||
+                (connection[0].x === b.x && connection[0].y === b.y && connection[0].z === b.z) && (connection[1].x === a.x && connection[1].y === a.y && connection[1].z === a.z)
         })
     }
 }
