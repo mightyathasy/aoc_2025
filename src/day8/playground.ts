@@ -77,17 +77,29 @@ export class Playground {
         b.connectionIDs.push(this.latestConnectionID);
 
         if(a.circuitID > 0 && b.circuitID > 0) {
-            this.circuits.get(b.circuitID)?.forEach(connID => this.circuits.get(a.circuitID)?.add(connID));
-            this.circuits.delete(b.circuitID)
+            if(!this.circuits.get(b.circuitID)) {
+                throw new Error(`Nincs ilyen circuit: ${b.circuitID}`)
+            }
+            if(!this.circuits.get(a.circuitID)) {
+                throw new Error(`Nincs ilyen circuit: ${a.circuitID}`)
+            }
+
+            // had to create a new variable with the value as the forEach down below just casually overwrited the value of b.circuitID
+            // and in the next iteration this new value was compared. thus a couple of circuitIDs were not updated and pointed to a non-existing circuit....
+            let circuitIDtoDelete = Number(b.circuitID)
+
+            this.circuits.get(circuitIDtoDelete)?.forEach(connID => this.circuits.get(a.circuitID)?.add(connID));
+            this.circuits.delete(circuitIDtoDelete)
             this.circuits.get(a.circuitID)?.add(this.latestConnectionID)
             this.junctionBoxes.forEach(box => {
-                if(box.circuitID === b.circuitID) box.circuitID = a.circuitID;
+                if(box.circuitID ===circuitIDtoDelete) box.circuitID = a.circuitID;
             })
             return;
         }
         if(a.circuitID > 0 && b.circuitID === 0) {
             this.circuits.get(a.circuitID)?.add(this.latestConnectionID)
             b.circuitID = a.circuitID;
+            console.log(`Circuits merged: ${a.x}, ${a.y}, ${a.z} --> ${b.x}, ${b.y}, ${b.z} Into circuit: ${a.circuitID}`)
             return;
         }
         if(a.circuitID === 0 && b.circuitID > 0) {
