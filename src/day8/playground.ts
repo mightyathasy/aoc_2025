@@ -27,12 +27,12 @@ export class Playground {
             let closestBoxes = this.getClosestBoxes();
             if(!this.areBoxesConnectedOrInSameCircuit(closestBoxes[0],closestBoxes[1])) {
                 this.connectBoxes(closestBoxes[0], closestBoxes[1]);
-                this.connectionsHandled.push(closestBoxes);
-            } else {
-                this.connectionsHandled.push(closestBoxes);
             }
+            this.connectionsHandled.push(closestBoxes);
             this.connectionLimiter++;
         }
+
+        // just getting the largest circuits to the start of the map
         let sorted = Array.from(this.circuits).sort((a, b) => b[1].size - a[1].size);
         this.circuits.clear();
         sorted.forEach((circuit) => {
@@ -112,8 +112,11 @@ export class Playground {
 
     private isConnectionHandled(a: JunctionBox, b: JunctionBox): boolean {
         return this.connectionsHandled.some(connection => {
-            return  (connection[0].x === a.x && connection[0].y === a.y && connection[0].z === a.z) && (connection[1].x === b.x && connection[1].y === b.y && connection[1].z === b.z) ||
-                (connection[0].x === b.x && connection[0].y === b.y && connection[0].z === b.z) && (connection[1].x === a.x && connection[1].y === a.y && connection[1].z === a.z)
+            return ( this.isSameBox(connection[0], a) && this.isSameBox(connection[1], b) ) || ( this.isSameBox(connection[0], b) && this.isSameBox(connection[1], a) )
         })
+    }
+
+    private isSameBox(a: JunctionBox, b: JunctionBox): boolean {
+        return (b.x === a.x && b.y === a.y && b.z === a.z);
     }
 }
