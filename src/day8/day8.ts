@@ -7,15 +7,15 @@ export async function solve(input: string[]): Promise<number> {
     playground.createCircuits();
 
     // Part 1
-    let circuits = playground.getCircuits().entries();
-    let result = 1;
+    // let circuits = playground.getCircuits().entries();
+    // let result = 1;
+    //
+    // @ts-ignore
+    // let circuitID = circuits.next().value[0];
+    // let countOfBoxes = playground.getBoxesOfCircuit(circuitID).length;
+    // result *= countOfBoxes;
+    // return result;
 
-    for(let i = 1; i <= 3; i++) {
-        // @ts-ignore
-        let circuitID = circuits.next().value[0];
-        let countOfBoxes = playground.getBoxesOfCircuit(circuitID).length;
-        result *= countOfBoxes;
-    }
-
-    return result;
+    // Part 2
+    return playground.getResultForPart2();
 }
