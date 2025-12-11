@@ -5,5 +5,6 @@ export type Rectangle = { corner1: Tile, corner2: Tile, size: number }
 
 export enum TileColor {
     Red = '#',
+    Green = 'X',
     NoColor = '.'
 }
