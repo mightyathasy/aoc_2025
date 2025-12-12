@@ -22,4 +22,5 @@ export async function solve(input: string[]): Promise<number> {
     // 1160674
     // 1183891
     // 1805722
+    // 1857573
 }

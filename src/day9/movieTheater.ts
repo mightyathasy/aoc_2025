@@ -109,7 +109,7 @@ export class MovieTheater {
         // A rectangle is full colored, if it's borders are all colored.
         // If a point in the border of the rectangle is not colored yet, then we are checking if it's part of the polygon by 'rays':
         // When we look inside the rectangle from the border point and we see that there is odd number of colored point in front of us, then we are inside the polygon.
-        for (let i = smallerX + 1; i <= biggerX; i++) {
+        for (let i = smallerX + 1; i < biggerX; i++) {
             if(this.coloredTilesMapByX.get(i)?.has(smallerY) || this.redTiles.some(t => t.x === i && t.y === smallerY)) {
                 continue;
             }
@@ -119,7 +119,7 @@ export class MovieTheater {
             }
         }
 
-        for (let i = smallerX + 1; i <= biggerX; i++) {
+        for (let i = smallerX + 1; i < biggerX; i++) {
             if(this.coloredTilesMapByX.get(i)?.has(biggerY) || this.redTiles.some(t => t.x === i && t.y === biggerY)) {
                 continue;
             }
@@ -129,7 +129,7 @@ export class MovieTheater {
             }
         }
 
-        for (let i = smallerY + 1; i <= biggerY; i++) {
+        for (let i = smallerY + 1; i < biggerY; i++) {
             if(this.coloredTilesMapByY.get(i)?.has(smallerX) || this.redTiles.some(t => t.y === i && t.x === smallerX)) {
                 continue;
             }
@@ -139,7 +139,7 @@ export class MovieTheater {
             }
         }
 
-        for (let i = smallerY + 1; i <= biggerY; i++) {
+        for (let i = smallerY + 1; i < biggerY; i++) {
             if(this.coloredTilesMapByY.get(i)?.has(biggerX) || this.redTiles.some(t => t.y === i && t.x === biggerX)) {
                 continue;
             }
@@ -148,6 +148,8 @@ export class MovieTheater {
                 return false;
             }
         }
+
+        // TODO: Az fingatja meg, hogy amikor egy pontbol mondjuk lefele elnezunk es ez a sugar atmegy egy elen, akkor tudja fene mi lesz a count
 
         return true;
     }
