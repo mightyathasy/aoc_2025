@@ -10,12 +10,16 @@ export async function solve(input: string[]): Promise<number> {
 
     console.log(`Number of rectangles: ${movieTheater.getRectangles().length}`)
 
+    let i = 0;
     let biggestColoredRectangle = movieTheater.getRectangles().find((rectangle, index) => {
-        console.log(`Current rectangle under investigation: ${index}`)
-        return movieTheater.doesRectangleHaveOnlyGreenEdges(rectangle)
+        i = index;
+        return movieTheater.doesRectangleHaveOnlyGreenEdges(rectangle);
     });
+    console.log(`Index of the rectangle: ${i}`);
     return biggestColoredRectangle?.size ?? 0;
 
     // last answer that did not work:
     // 1160674
+    // 1183891
+    // 1805722
 }
