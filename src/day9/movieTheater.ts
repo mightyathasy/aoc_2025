@@ -158,6 +158,18 @@ export class MovieTheater {
             }
         }
 
+        // TODO: Az ilyen minta me'g megszivat:
+        //                  X <-- ezt vizsga'ljuk e's 2 e'rinte'si pontot tala'lunk, ugyhogy invalid lesz....
+        //
+        //  XXXXX#  <-- ext megtala'ljuk
+        //                 X
+        //  XXXXX#
+        //
+        //  XXXXX# <-- ext megtala'ljuk
+        //                X
+        //                #XXXXXXXX
+
+
         return true;
     }
 }
