@@ -46,7 +46,7 @@ export class MovieTheater {
         return (Math.abs(rectangle.corner2.x - rectangle.corner1.x) +1) * (Math.abs(rectangle.corner2.y - rectangle.corner1.y) +1);
     }
 
-    markTileWithGreen(x: number, y: number): void {
+    putTileInColoredCluster(x: number, y: number): void {
         let isRedTile = this.redTiles.some(t => t.x === x && t.y === y);
         if(!isRedTile) {
             if(this.coloredTilesMapByX.get(x)) {
@@ -62,23 +62,20 @@ export class MovieTheater {
         }
     }
 
-    // isTileColored(tile: Tile): boolean {
-    //     // TODO: ezt meg kene irni es vegignezni a keretet, hogy szines-e. ha valamelyik nem szines, akkor csak arra megvizshalni, hogy a polygon resze-e
-    //     return false;
-    // }
-
     markEdgesWithGreenColor(): void {
         this.redTiles.forEach(tile => {
+            this.putTileInColoredCluster(tile.x, tile.y);
+
             let redTilesInColumn = this.redTiles.filter(t => t.x === tile.x).sort((a, b) => a.y - b.y);
             if(!redTilesInColumn) { return; }
             for(let i = redTilesInColumn[0].y; i < redTilesInColumn[redTilesInColumn.length-1].y; i += 1) {
-                this.markTileWithGreen(tile.x, i);
+                this.putTileInColoredCluster(tile.x, i);
             }
 
             let redTilesInLine = this.redTiles.filter(t => t.y === tile.y).sort((a, b) => a.x - b.x);
             if(!redTilesInLine) { return; }
             for(let i = redTilesInLine[0].x; i < redTilesInLine[redTilesInLine.length-1].x; i += 1) {
-                this.markTileWithGreen(i, tile.y);
+                this.putTileInColoredCluster(i, tile.y);
             }
         })
     }
@@ -110,46 +107,56 @@ export class MovieTheater {
         // If a point in the border of the rectangle is not colored yet, then we are checking if it's part of the polygon by 'rays':
         // When we look inside the rectangle from the border point and we see that there is odd number of colored point in front of us, then we are inside the polygon.
         for (let i = smallerX + 1; i < biggerX; i++) {
-            if(this.coloredTilesMapByX.get(i)?.has(smallerY) || this.redTiles.some(t => t.x === i && t.y === smallerY)) {
-                continue;
-            }
-            let borderPointsUnderThisOne = Array.from(this.coloredTilesMapByX.get(i) ?? []).filter(y => y > smallerY).length;
-            if(borderPointsUnderThisOne % 2 !== 1) {
+            let yCoordinatesInColumn = this.coloredTilesMapByX.get(i);
+            if(!yCoordinatesInColumn) {
                 return false;
             }
-        }
 
-        for (let i = smallerX + 1; i < biggerX; i++) {
-            if(this.coloredTilesMapByX.get(i)?.has(biggerY) || this.redTiles.some(t => t.x === i && t.y === biggerY)) {
+            // If a red of the rectangle is in this column, then we are good.
+            if(this.redTiles.some(t => t.x === i && (t.y === smallerY || t.y === biggerY))) {
                 continue;
             }
-            let borderPointsOverThisOne = Array.from(this.coloredTilesMapByX.get(i) ?? []).filter(y => y < biggerY).length;
-            if(borderPointsOverThisOne % 2 !== 1) {
+
+            let borderPointsUnderThisOne = 0;
+            let borderPointsOverThisOne = 0;
+            for(const yCoordinate of yCoordinatesInColumn.entries()) {
+                if(yCoordinate[0] > smallerY && !yCoordinatesInColumn.has(yCoordinate[0] - 1)) {
+                    borderPointsUnderThisOne++;
+                }
+                if(yCoordinate[0] < biggerY && !yCoordinatesInColumn.has(yCoordinate[0] + 1)) {
+                    borderPointsOverThisOne++;
+                }
+            }
+            if(borderPointsUnderThisOne % 2 !== 1 || borderPointsOverThisOne % 2 !== 1) {
                 return false;
             }
         }
 
         for (let i = smallerY + 1; i < biggerY; i++) {
-            if(this.coloredTilesMapByY.get(i)?.has(smallerX) || this.redTiles.some(t => t.y === i && t.x === smallerX)) {
+            let xCoordinatesInLine = this.coloredTilesMapByY.get(i);
+            if(!xCoordinatesInLine) {
+                return false;
+            }
+
+            // If a red of the rectangle is in this line, then we are good.
+            if(this.redTiles.some(t => t.y === i && (t.x === smallerX || t.x === biggerX))) {
                 continue;
             }
-            let borderPointsToTheRight = Array.from(this.coloredTilesMapByY.get(i) ?? []).filter(x => x > smallerX).length;
-            if(borderPointsToTheRight % 2 !== 1) {
+
+            let borderPointsToTheRight = 0;
+            let borderPointsToTheLeft = 0;
+            for(const xCoordinate of xCoordinatesInLine.entries()) {
+                if(xCoordinate[0] > smallerY && !xCoordinatesInLine.has(xCoordinate[0] + 1)) {
+                    borderPointsToTheRight++;
+                }
+                if(xCoordinate[0] < biggerY && !xCoordinatesInLine.has(xCoordinate[0] - 1)) {
+                    borderPointsToTheLeft++;
+                }
+            }
+            if(borderPointsToTheRight % 2 !== 1 || borderPointsToTheLeft % 2 !== 1) {
                 return false;
             }
         }
-
-        for (let i = smallerY + 1; i < biggerY; i++) {
-            if(this.coloredTilesMapByY.get(i)?.has(biggerX) || this.redTiles.some(t => t.y === i && t.x === biggerX)) {
-                continue;
-            }
-            let borderPointsToTheLeft = Array.from(this.coloredTilesMapByY.get(i) ?? []).filter(x => x < biggerX).length;
-            if(borderPointsToTheLeft % 2 !== 1) {
-                return false;
-            }
-        }
-
-        // TODO: Az fingatja meg, hogy amikor egy pontbol mondjuk lefele elnezunk es ez a sugar atmegy egy elen, akkor tudja fene mi lesz a count
 
         return true;
     }
