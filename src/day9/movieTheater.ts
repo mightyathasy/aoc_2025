@@ -11,11 +11,11 @@ export class MovieTheater {
     setData(input: string[]): void {
         this.redTiles = input.map(line => {
             return {
-                x: parseInt(line.split(',')[0].trim()),
-                y: parseInt(line.split(',')[1].trim()),
+                x: parseInt(line.split(',')[1].trim()),
+                y: parseInt(line.split(',')[0].trim()),
                 color: TileColor.Red
             }
-        }).sort((a, b) => { return a.x - b.x || a.y - b.y ; });
+        });
     }
 
     getRedTiles(): Tile[] {
@@ -24,6 +24,32 @@ export class MovieTheater {
 
     getRectangles(): Rectangle[] {
         return this.rectangles;
+    }
+
+    mapToString(): string {
+        let map: string[][] = [];
+        let maxX = Math.max(...this.coloredTilesMapByX.keys());
+        let maxY = Math.max(...this.coloredTilesMapByY.keys());
+        for(let x = 0; x <= maxX; x++) {
+            if(!map[x]) {
+                map[x] = [];
+            }
+            for(let y = 0; y <= maxY; y++) {
+                if(!map[y]) {
+                    map[y] = [];
+                }
+                if(this.redTiles.find(tile => tile.x === x && tile.y === y)) {
+                    map[x][y] = '#';
+                    continue;
+                }
+                if(this.coloredTilesMapByX.get(x)?.has(y)) {
+                    map[x][y] = 'X';
+                    continue;
+                }
+                map[x][y] = '.';
+            }
+        }
+        return map.map(line => line.join('')).join('\n');
     }
 
     findRectangles(): Rectangle[] {
@@ -62,22 +88,49 @@ export class MovieTheater {
         }
     }
 
-    markEdgesWithGreenColor(): void {
-        this.redTiles.forEach(tile => {
-            this.putTileInColoredCluster(tile.x, tile.y);
-
-            let redTilesInColumn = this.redTiles.filter(t => t.x === tile.x).sort((a, b) => a.y - b.y);
-            if(!redTilesInColumn) { return; }
-            for(let i = redTilesInColumn[0].y; i < redTilesInColumn[redTilesInColumn.length-1].y; i += 1) {
-                this.putTileInColoredCluster(tile.x, i);
+    connectEdgeBetweenTiles(tile1: Tile, tile2: Tile) {
+        if(tile1.x === tile2.x) {
+            let maxY = tile1.y > tile2.y ? tile1.y : tile2.y;
+            let minY = tile1.y > tile2.y ? tile2.y : tile1.y;
+            for(let y = minY + 1; y < maxY; y++) {
+                this.putTileInColoredCluster(tile1.x, y);
             }
+        }
+        if(tile1.y === tile2.y) {
+            let maxX = tile1.x > tile2.x ? tile1.x : tile2.x;
+            let minX = tile1.x > tile2.x ? tile2.x : tile1.x;
+            for(let x = minX + 1; x < maxX; x++) {
+                this.putTileInColoredCluster(x, tile1.y);
+            }
+        }
+    }
 
-            let redTilesInLine = this.redTiles.filter(t => t.y === tile.y).sort((a, b) => a.x - b.x);
-            if(!redTilesInLine) { return; }
-            for(let i = redTilesInLine[0].x; i < redTilesInLine[redTilesInLine.length-1].x; i += 1) {
-                this.putTileInColoredCluster(i, tile.y);
+    markEdgesWithGreenColor(): void {
+        this.redTiles.forEach((tile, index) => {
+            this.putTileInColoredCluster(tile.x, tile.y);
+            if(this.redTiles[index + 1]) {
+                this.connectEdgeBetweenTiles(tile, this.redTiles[index + 1]);
+            }
+            if(index === this.redTiles.length - 1) {
+                this.connectEdgeBetweenTiles(tile, this.redTiles[0]);
             }
         })
+    }
+
+    isTileInsideThePolygon(tile: Tile): boolean {
+        let intersectionCount = 0;
+        for (let i = 0, j = this.redTiles.length - 1; i < this.redTiles.length; j = i++) {
+            // As 2 red tiles in the list are adjacent tiles and create an edge, we are using them
+            const corner1 = this.redTiles[i];
+            const corner2 = this.redTiles[j];
+
+            // Cast a ray downwards and check if it intersects the edge
+            const intersects = ((corner1.y > tile.y) !== (corner2.y > tile.y))  // if tile is horizontally between the corners      |       x       |
+                                          && (tile.x < (corner2.x - corner1.x) * (tile.y - corner1.y) / (corner2.y - corner1.y) + corner1.x); // if the tile is above the point where the 'ray' would intersect the edge  ___:___
+
+            if (intersects) intersectionCount++;
+        }
+        return intersectionCount % 2 === 1; // if the number of the intersections is odd, the tile is inside
     }
 
     doesRectangleHaveOnlyGreenEdges(rectangle: Rectangle): boolean {
@@ -103,73 +156,25 @@ export class MovieTheater {
             return true;
         }
 
-        // A rectangle is full colored, if it's borders are all colored.
-        // If a point in the border of the rectangle is not colored yet, then we are checking if it's part of the polygon by 'rays':
-        // When we look inside the rectangle from the border point and we see that there is odd number of colored point in front of us, then we are inside the polygon.
         for (let i = smallerX + 1; i < biggerX; i++) {
-            let yCoordinatesInColumn = this.coloredTilesMapByX.get(i);
-            if(!yCoordinatesInColumn) {
+            // if the current tile is not colored, then check if its part of the huge polygon
+            if(!this.coloredTilesMapByY.get(smallerY)?.has(i) && !this.isTileInsideThePolygon(({x: i, y: smallerY} as Tile))) {
                 return false;
             }
-
-            // If a red of the rectangle is in this column, then we are good.
-            if(this.redTiles.some(t => t.x === i && (t.y === smallerY || t.y === biggerY))) {
-                continue;
-            }
-
-            let borderPointsUnderThisOne = 0;
-            let borderPointsOverThisOne = 0;
-            for(const yCoordinate of yCoordinatesInColumn.entries()) {
-                if(yCoordinate[0] > smallerY && !yCoordinatesInColumn.has(yCoordinate[0] - 1)) {
-                    borderPointsUnderThisOne++;
-                }
-                if(yCoordinate[0] < biggerY && !yCoordinatesInColumn.has(yCoordinate[0] + 1)) {
-                    borderPointsOverThisOne++;
-                }
-            }
-            if(borderPointsUnderThisOne % 2 !== 1 || borderPointsOverThisOne % 2 !== 1) {
+            if(!this.coloredTilesMapByY.get(biggerY)?.has(i) && !this.isTileInsideThePolygon(({x: i, y: biggerY} as Tile))) {
                 return false;
             }
         }
 
         for (let i = smallerY + 1; i < biggerY; i++) {
-            let xCoordinatesInLine = this.coloredTilesMapByY.get(i);
-            if(!xCoordinatesInLine) {
+            // if the current tile is not colored, then check if its part of the huge polygon
+            if(!this.coloredTilesMapByX.get(smallerX)?.has(i) && !this.isTileInsideThePolygon(({x: smallerX, y: i} as Tile))) {
                 return false;
             }
-
-            // If a red of the rectangle is in this line, then we are good.
-            if(this.redTiles.some(t => t.y === i && (t.x === smallerX || t.x === biggerX))) {
-                continue;
-            }
-
-            let borderPointsToTheRight = 0;
-            let borderPointsToTheLeft = 0;
-            for(const xCoordinate of xCoordinatesInLine.entries()) {
-                if(xCoordinate[0] > smallerY && !xCoordinatesInLine.has(xCoordinate[0] + 1)) {
-                    borderPointsToTheRight++;
-                }
-                if(xCoordinate[0] < biggerY && !xCoordinatesInLine.has(xCoordinate[0] - 1)) {
-                    borderPointsToTheLeft++;
-                }
-            }
-            if(borderPointsToTheRight % 2 !== 1 || borderPointsToTheLeft % 2 !== 1) {
+            if(!this.coloredTilesMapByX.get(biggerX)?.has(i) && !this.isTileInsideThePolygon(({x: biggerX, y: i} as Tile))) {
                 return false;
             }
         }
-
-        // TODO: Az ilyen minta me'g megszivat:
-        //                  X <-- ezt vizsga'ljuk e's 2 e'rinte'si pontot tala'lunk, ugyhogy invalid lesz....
-        //
-        //  XXXXX#  <-- ext megtala'ljuk
-        //                 X
-        //  XXXXX#
-        //
-        //  XXXXX# <-- ext megtala'ljuk
-        //                X
-        //                #XXXXXXXX
-
-
         return true;
     }
 }
