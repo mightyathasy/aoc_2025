@@ -1,4 +1,4 @@
-import { getNLongPermutationsOfNumbers } from "../util.js";
+import { getNLongCombinationsOfNumbers } from "../util.js";
 
 export class Machine {
     private indicatorLightDiagram: string[] = [];
@@ -26,7 +26,7 @@ export class Machine {
 
         do {
             buttonPushesUsed++
-            for(const buttonIDList of getNLongPermutationsOfNumbers(buttonPushesUsed, Array.from(this.buttonWiringSchematics.keys()))) {
+            for(const buttonIDList of getNLongCombinationsOfNumbers(buttonPushesUsed, Array.from(this.buttonWiringSchematics.keys()))) {
                 if(sequenceFound) { break; }
                 let indicatorLightMap = this.indicatorLightDiagram.map(() => '.');
                 buttonIDList.forEach(buttonID => this.applyButtonPushForMachine(indicatorLightMap, this.buttonWiringSchematics.get(buttonID) ?? []))
