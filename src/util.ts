@@ -8,3 +8,17 @@ export enum TileColor {
     Green = 'X',
     NoColor = '.'
 }
+
+export function* getNLongPermutationsOfNumbers(n: number, numbers: number[]): Generator<number[]> {
+    function* backtrack(current: number[]): Generator<number[]> {
+        if (current.length === n) { yield [...current]; return; }
+
+        for (const value of numbers) {
+            current.push(value);
+            yield* backtrack(current);
+            current.pop();
+        }
+    }
+
+    yield* backtrack([]);
+}
