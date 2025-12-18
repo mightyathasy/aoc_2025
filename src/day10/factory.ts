@@ -14,7 +14,8 @@ export class Factory {
     }
 
     calculateFewestButtonPushesForMachines(): void {
-        this.machines.forEach(machine => {
+        this.machines.forEach((machine, i) => {
+            console.log(`Current machine to be executed: ${i}`);
             machine.calculateFastestConfiguringSequence();
         })
     }

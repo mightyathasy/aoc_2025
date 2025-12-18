@@ -4,8 +4,7 @@ export class Machine {
     private indicatorLightDiagram: string[] = [];
     private buttonWiringSchematics: Map<number, number[]> = new Map();
     private fastestConfiguringSequence: number[] = [];
-
-    // private joltageRequirements: number[] = [];
+    private joltageRequirements: number[] = [];
 
     constructor(inputLine: string) {
         this.indicatorLightDiagram = (inputLine.match(/\[.*]/g) ?? [])[0]?.split('').filter(c => c!=='['&&c!==']') ?? [];
@@ -16,8 +15,7 @@ export class Machine {
             this.buttonWiringSchematics.set(i, buttonWiringSchematics[i]);
         }
 
-        // Not needed yet
-        // this.joltageRequirements = (inputLine.match(/\{.*}/g) ?? [])[0]?.split('').filter(c => c!=='{'&&c!=='}'&&c!==',').map(c => parseInt(c)) ?? [];
+        this.joltageRequirements = (inputLine.match(/\{.*}/g) ?? [])[0]?.split('').filter(c => c !== '{' && c !== '}').join('').split(',').map(c => parseInt(c)) ?? [];
     }
 
     calculateFastestConfiguringSequence(): number {
@@ -28,9 +26,13 @@ export class Machine {
             buttonPushesUsed++
             for(const buttonIDList of getNLongCombinationsOfNumbers(buttonPushesUsed, Array.from(this.buttonWiringSchematics.keys()))) {
                 if(sequenceFound) { break; }
-                let indicatorLightMap = this.indicatorLightDiagram.map(() => '.');
-                buttonIDList.forEach(buttonID => this.applyButtonPushForMachine(indicatorLightMap, this.buttonWiringSchematics.get(buttonID) ?? []))
-                sequenceFound = indicatorLightMap.every((light, index) => this.indicatorLightDiagram[index] === light); // if the parrent matches the lights turned on...
+
+                // Part 1
+                // sequenceFound = this.applyButtonPushesToSwitchLights(buttonIDList);
+
+                // Part 2
+                sequenceFound = this.applyButtonPushesToIncreaseJoltageLevels(buttonIDList);
+
                 if(sequenceFound) {
                     this.fastestConfiguringSequence = buttonIDList;
                     break;
@@ -51,6 +53,27 @@ export class Machine {
             indicatorLightMap[lightIndex] = indicatorLightMap[lightIndex] === '.' ? '#' : '.';
         })
         return indicatorLightMap
+    }
+
+    private applyButtonPushesToSwitchLights(buttonIDList: number[]): boolean {
+        let indicatorLightMap = this.indicatorLightDiagram.map(() => '.');
+        buttonIDList.forEach(buttonID => this.applyButtonPushForMachine(indicatorLightMap, this.buttonWiringSchematics.get(buttonID) ?? []))
+        return indicatorLightMap.every((light, index) => this.indicatorLightDiagram[index] === light); // if the pattern matches the lights turned on...
+    }
+
+    private applyButtonPushForMachineJoltage(joltageLevels: number[], button: number[]): number[] {
+        if(button.length === 0) { throw new Error("Cannot use button that switches no lights"); }
+        button.forEach(lightIndex => {
+            joltageLevels[lightIndex] = joltageLevels[lightIndex] += 1;
+        })
+        return joltageLevels;
+    }
+
+    applyButtonPushesToIncreaseJoltageLevels(buttonIDList: number[]): boolean {
+        let joltageLevels = this.joltageRequirements.map(() => 0);
+        // buttons should be compressed somehow to win on performance
+        buttonIDList.forEach(buttonID => this.applyButtonPushForMachineJoltage(joltageLevels, this.buttonWiringSchematics.get(buttonID) ?? []))
+        return  joltageLevels.every((joltageLevel, index) => this.joltageRequirements[index] === joltageLevel);
     }
 
 }
